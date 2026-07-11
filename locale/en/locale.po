@@ -1,0 +1,13 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: assignEditorGeneral\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "plugins.generic.assignEditorGeneral.displayName"
+msgstr "Assign General Editors automatically"
+
+msgid "plugins.generic.assignEditorGeneral.description"
+msgstr "When a new submission is completed, automatically assigns every active user in the \"Editor geral\" (Press editor) group to the submission stage, with the standard OMP notification and e-mail."
