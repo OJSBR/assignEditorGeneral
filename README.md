@@ -4,7 +4,7 @@
 [![Version](https://img.shields.io/badge/version-1.0.0.0-blue)](version.xml)
 [![License](https://img.shields.io/badge/license-GPL--3.0-lightgrey)](LICENSE)
 
-**⬇️ Install package:** [OMP 3.5](https://github.com/OJSBR/assignEditorGeneral/releases/download/1.0.0.0-omp3.5/assignEditorGeneral-1.0.0.0-omp3.5.tar.gz) — or browse all [Releases](../../releases).
+**⬇️ Install package:** [OMP 3.5](https://github.com/OJSBR/assignEditorGeneral/releases/download/1.0.0.2-omp3.5/assignEditorGeneral-1.0.0.2-omp3.5.tar.gz) — or browse all [Releases](../../releases).
 
 A generic plugin for **Open Monograph Press (OMP)** that, whenever a new submission is
 completed, **automatically assigns every active user in the "Editor geral" (Press editor)

@@ -1,0 +1,17 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: OJSBR\n"
+"Language-Team: OJSBR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pt\n"
+
+
+msgid "plugins.generic.assignEditorGeneral.displayName"
+msgstr "Atribuir Editores Gerais automaticamente"
+
+msgid "plugins.generic.assignEditorGeneral.description"
+msgstr "Ao concluir uma nova submissão, atribui automaticamente todos os utilizadores ativos do grupo «Editor geral» à etapa de submissão, com a notificação e o e-mail padrão do OMP."
