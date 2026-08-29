@@ -1,0 +1,17 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: OJSBR\n"
+"Language-Team: OJSBR\n"
+"Language: zh_Hans\n"
+
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.displayName"
+msgstr "自动指派总编辑"
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.description"
+msgstr "新投稿完成时，自动将“Editor geral”（出版社编辑）用户组中的所有启用用户指派到该投稿阶段，并发送 OMP 的标准通知和邮件。"

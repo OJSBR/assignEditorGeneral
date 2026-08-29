@@ -1,0 +1,17 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: OJSBR\n"
+"Language-Team: OJSBR\n"
+"Language: ka\n"
+
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.displayName"
+msgstr "მთავარი რედაქტორების ავტომატური მინიჭება"
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.description"
+msgstr "ახალი წარდგინების დასრულებისას ავტომატურად ანიჭებს ჯგუფის „Editor geral“ (გამომცემლობის რედაქტორი) ყველა აქტიურ მომხმარებელს წარდგინების ეტაპს, OMP-ის სტანდარტული შეტყობინებითა და ელფოსტით."

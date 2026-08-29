@@ -1,0 +1,15 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: OJSBR\n"
+"Language-Team: OJSBR\n"
+"Language: fr_CA\n"
+
+
+msgid "plugins.generic.assignEditorGeneral.displayName"
+msgstr "Assigner automatiquement les rédacteurs généraux"
+
+msgid "plugins.generic.assignEditorGeneral.description"
+msgstr "Lorsqu'une nouvelle soumission est complétée, assigne automatiquement tous les utilisateurs actifs du groupe « Editor geral » (rédacteur de la maison d'édition) à l'étape de la soumission, avec la notification et le courriel standard d'OMP."

@@ -1,0 +1,17 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: OJSBR\n"
+"Language-Team: OJSBR\n"
+"Language: fi\n"
+
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.displayName"
+msgstr "Määritä yleistoimittajat automaattisesti"
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.description"
+msgstr "Kun uusi käsikirjoitus valmistuu, liittää automaattisesti kaikki ryhmän \"Editor geral\" (kustantamon toimittaja) aktiiviset käyttäjät käsikirjoituksen vaiheeseen OMP:n vakioilmoituksella ja -sähköpostilla."

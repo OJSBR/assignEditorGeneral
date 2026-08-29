@@ -1,0 +1,17 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: OJSBR\n"
+"Language-Team: OJSBR\n"
+"Language: bg\n"
+
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.displayName"
+msgstr "Автоматично назначаване на главни редактори"
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.description"
+msgstr "Когато ново предложение бъде завършено, автоматично назначава всеки активен потребител от групата „Editor geral“ (редактор на издателството) към етапа на предложението, със стандартното известие и имейл на OMP."

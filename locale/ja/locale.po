@@ -1,0 +1,17 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: OJSBR\n"
+"Language-Team: OJSBR\n"
+"Language: ja\n"
+
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.displayName"
+msgstr "統括編集者を自動的に割り当てる"
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.description"
+msgstr "新しい投稿が完了すると、「Editor geral」（出版社編集者）グループの有効な全ユーザーを、OMP の標準通知とメールとともに投稿の段階に自動で割り当てます。"

@@ -1,0 +1,17 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: OJSBR\n"
+"Language-Team: OJSBR\n"
+"Language: sv\n"
+
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.displayName"
+msgstr "Tilldela allmänna redaktörer automatiskt"
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.description"
+msgstr "När ett nytt bidrag har slutförts tilldelas alla aktiva användare i gruppen ”Editor geral” (förlagsredaktör) automatiskt till bidragets steg, med OMP:s standardavisering och e-post."

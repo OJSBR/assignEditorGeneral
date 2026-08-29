@@ -1,0 +1,17 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: OJSBR\n"
+"Language-Team: OJSBR\n"
+"Language: az\n"
+
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.displayName"
+msgstr "Baş redaktorları avtomatik təyin et"
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.description"
+msgstr "Yeni təqdimat tamamlandıqda, \"Editor geral\" (nəşriyyat redaktoru) qrupundakı bütün aktiv istifadəçiləri standart OMP bildirişi və e-poçtu ilə təqdimat mərhələsinə avtomatik təyin edir."

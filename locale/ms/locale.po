@@ -1,0 +1,17 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: OJSBR\n"
+"Language-Team: OJSBR\n"
+"Language: ms\n"
+
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.displayName"
+msgstr "Tugaskan Editor Am secara automatik"
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.description"
+msgstr "Apabila serahan baharu selesai, secara automatik menugaskan setiap pengguna aktif dalam kumpulan \"Editor geral\" (editor penerbit) kepada peringkat serahan, dengan pemberitahuan dan e-mel standard OMP."

@@ -1,0 +1,17 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: OJSBR\n"
+"Language-Team: OJSBR\n"
+"Language: ro\n"
+
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.displayName"
+msgstr "Atribuire automată a editorilor generali"
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.description"
+msgstr "Când o propunere nouă este finalizată, atribuie automat fiecărui utilizator activ din grupul „Editor geral” (editor al editurii) etapa propunerii, cu notificarea și e-mailul standard OMP."

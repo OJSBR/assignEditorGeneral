@@ -1,0 +1,17 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: OJSBR\n"
+"Language-Team: OJSBR\n"
+"Language: tr\n"
+
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.displayName"
+msgstr "Genel editörleri otomatik ata"
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.description"
+msgstr "Yeni bir gönderi tamamlandığında, \"Editor geral\" (yayınevi editörü) grubundaki tüm etkin kullanıcıları standart OMP bildirimi ve e-postasıyla gönderinin aşamasına otomatik olarak atar."
