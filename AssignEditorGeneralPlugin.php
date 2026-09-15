@@ -1,20 +1,19 @@
 <?php
 
 /**
- * @file AssignEditorGeneralPlugin.php
+ * @file plugins/generic/assignEditorGeneral/AssignEditorGeneralPlugin.php
  *
- * Copyright (c) 2026 OJSBR (https://ojsbr.com.br)
+ * Copyright (c) 2026 OJSBR (https://ojsbr.com)
  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
  *
  * @class AssignEditorGeneralPlugin
  *
- * @brief Plugin OMP 3.5: ao finalizar uma nova submissao, atribui
- *  automaticamente todos os usuarios ativos do grupo "Editor geral" (grupo
- *  padrao "Press editor", papel Gerente) a etapa de submissao, com a
- *  notificacao e o e-mail padrao do OMP.
+ * @brief OMP 3.5: when a new submission is completed, assigns every active user
+ *  of the "Press editor" group (manager role) to the submission, with the
+ *  notification and the e-mail OMP sends for a native editor assignment.
  *
- *  Nao altera o codigo-fonte do OMP: engancha o evento nativo SubmissionSubmitted
- *  em runtime, imitando o listener nativo AssignEditors / SubEditorsDAO.
+ *  No core file is changed: the native SubmissionSubmitted event is listened to
+ *  at runtime, mirroring the native AssignEditors listener and SubEditorsDAO.
  */
 
 namespace APP\plugins\generic\assignEditorGeneral;
@@ -22,10 +21,12 @@ namespace APP\plugins\generic\assignEditorGeneral;
 use APP\core\Application;
 use APP\facades\Repo;
 use APP\notification\NotificationManager;
+use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use PKP\db\DAORegistry;
 use PKP\log\SubmissionEmailLogEventType;
+use PKP\mail\Mailable;
 use PKP\mail\mailables\EditorAssigned;
 use PKP\notification\Notification;
 use PKP\notification\NotificationSubscriptionSettingsDAO;
@@ -35,23 +36,35 @@ use PKP\security\Role;
 use PKP\stageAssignment\StageAssignment;
 use PKP\user\Collector;
 use PKP\userGroup\UserGroup;
+use Throwable;
 
 class AssignEditorGeneralPlugin extends GenericPlugin
 {
     /**
-     * nameLocaleKey do grupo padrao "Press editor" (exibido como "Editor geral"
-     * em pt_BR). Identificador estavel, independente de renomeacao/traducao.
+     * nameLocaleKey of the default "Press editor" group (shown as "Editor geral"
+     * in pt_BR). A stable identifier, whatever the group is renamed to.
      */
-    private const EDITOR_GROUP_LOCALE_KEY = 'default.groups.name.editor';
+    public const EDITOR_GROUP_LOCALE_KEY = 'default.groups.name.editor';
 
-    /** Fallback: nome literal, caso o grupo tenha sido criado manualmente. */
-    private const EDITOR_GROUP_NAME_FALLBACK = 'Editor geral';
+    /** Fallback for a group created by hand: its Brazilian Portuguese name. */
+    public const EDITOR_GROUP_NAME_FALLBACK = 'Editor geral';
 
-    /** Evita registrar o listener mais de uma vez na mesma request. */
+    /** The listener is registered once per request. */
     private static bool $listenerRegistered = false;
+
+    /** Messages the transport accepted, counted through Laravel's MessageSent. */
+    private static int $sentMessages = 0;
+
+    private static bool $countingSent = false;
 
     /**
      * @copydoc Plugin::register()
+     *
+     * The listener is always registered and the context check happens when the
+     * event fires: when generic plugins load, the context may not be resolved
+     * yet, and checking then would miss the assignment.
+     *
+     * @param null|mixed $mainContextId
      */
     public function register($category, $path, $mainContextId = null)
     {
@@ -60,10 +73,6 @@ class AssignEditorGeneralPlugin extends GenericPlugin
             return $success;
         }
 
-        // OMP 3.5 (PKP #11793): SEMPRE registrar o listener; o check de
-        // getEnabled() vai dentro do callback. Na hora do generic-load o
-        // contexto pode ainda nao estar resolvido, entao adiar o getEnabled()
-        // para o disparo do evento evita perder a atribuicao.
         if (!self::$listenerRegistered) {
             self::$listenerRegistered = true;
             Event::listen(SubmissionSubmitted::class, function (SubmissionSubmitted $event): void {
@@ -91,9 +100,18 @@ class AssignEditorGeneralPlugin extends GenericPlugin
     }
 
     /**
-     * Trata o evento nativo de submissao finalizada.
+     * Whether a manager-role group is the general editors group.
      */
-    private function handleSubmissionSubmitted(SubmissionSubmitted $event): void
+    public static function isGeneralEditorGroup(?string $nameLocaleKey, ?string $brazilianName): bool
+    {
+        return $nameLocaleKey === self::EDITOR_GROUP_LOCALE_KEY
+            || ($brazilianName !== null && trim($brazilianName) === self::EDITOR_GROUP_NAME_FALLBACK);
+    }
+
+    /**
+     * Handle the native "submission completed" event.
+     */
+    public function handleSubmissionSubmitted(SubmissionSubmitted $event): void
     {
         $submission = $event->submission;
         $context = $event->context;
@@ -102,20 +120,16 @@ class AssignEditorGeneralPlugin extends GenericPlugin
             return;
         }
 
-        // 1) Resolve o(s) grupo(s) "Editor geral" (papel Gerente) do contexto.
-        //    Usa ->get() (nao ->cursor()): so o get() hidrata os settings do grupo
-        //    (nameLocaleKey/name) via SettingsBuilder::getModels(). O getByRoleIds()
-        //    nativo usa cursor() e retornaria nameLocaleKey/name = null.
+        // 1) The general editors groups (manager role) of the press. get(), not
+        //    cursor(): only get() hydrates the group settings (nameLocaleKey,
+        //    name); the native getByRoleIds() uses cursor() and returns them null.
         $editorGroups = UserGroup::withRoleIds([Role::ROLE_ID_MANAGER])
             ->withContextIds([$context->getId()])
             ->get()
-            ->filter(function (UserGroup $userGroup) {
-                return ($userGroup->nameLocaleKey ?? null) === self::EDITOR_GROUP_LOCALE_KEY
-                    || $userGroup->getLocalizedData('name', 'pt_BR') === self::EDITOR_GROUP_NAME_FALLBACK;
-            });
+            ->filter(fn (UserGroup $userGroup) => self::isGeneralEditorGroup($userGroup->nameLocaleKey ?? null, $userGroup->getLocalizedData('name', 'pt_BR')));
 
         if ($editorGroups->isEmpty()) {
-            error_log('[assignEditorGeneral] Grupo "Editor geral" nao encontrado no contexto ' . $context->getId());
+            error_log('[assignEditorGeneral] No general editors group in context ' . $context->getId() . '.');
             return;
         }
 
@@ -129,7 +143,7 @@ class AssignEditorGeneralPlugin extends GenericPlugin
         foreach ($editorGroups as $userGroup) {
             $userGroupId = $userGroup->id;
 
-            // 2) Todos os editores ATIVOS desse grupo no contexto.
+            // 2) Every ACTIVE editor of the group in the press.
             $editors = Repo::user()->getCollector()
                 ->filterByContextIds([$context->getId()])
                 ->filterByUserGroupIds([$userGroupId])
@@ -137,7 +151,7 @@ class AssignEditorGeneralPlugin extends GenericPlugin
                 ->getMany();
 
             foreach ($editors as $editor) {
-                // 3) Dedup: se ja atribuido nesse grupo, nao reatribui nem renotifica.
+                // 3) Already assigned with this group: no second assignment or notification.
                 $already = StageAssignment::withSubmissionIds([$submission->getId()])
                     ->withUserId($editor->getId())
                     ->withUserGroupId($userGroupId)
@@ -146,17 +160,11 @@ class AssignEditorGeneralPlugin extends GenericPlugin
                     continue;
                 }
 
-                // 4) Cria a atribuicao editorial (recommendOnly = false => editor pleno).
-                //    build() e idempotente por si so (firstOr); a dedup acima e para as notificacoes.
-                Repo::stageAssignment()->build(
-                    $submission->getId(),
-                    $userGroupId,
-                    $editor->getId(),
-                    false
-                );
+                // 4) The editorial assignment (recommendOnly = false: a full editor).
+                Repo::stageAssignment()->build($submission->getId(), $userGroupId, $editor->getId(), false);
                 $assignedAny = true;
 
-                // 5) Notificacao in-app (igual ao fluxo nativo).
+                // 5) In-app notification, as in the native flow.
                 $notificationManager->createNotification(
                     $editor->getId(),
                     Notification::NOTIFICATION_TYPE_SUBMISSION_SUBMITTED,
@@ -165,7 +173,7 @@ class AssignEditorGeneralPlugin extends GenericPlugin
                     $submission->getId()
                 );
 
-                // 6) E-mail "Editor designado", respeitando quem se descadastrou.
+                // 6) The "Editor assigned" e-mail, unless the editor unsubscribed.
                 if (!$emailTemplate) {
                     continue;
                 }
@@ -189,16 +197,20 @@ class AssignEditorGeneralPlugin extends GenericPlugin
                     ->body($emailTemplate->getLocalizedData('body') ?? '')
                     ->recipients([$editor]);
 
-                Mail::send($mailable);
-                Repo::emailLogEntry()->logMailable(
-                    SubmissionEmailLogEventType::EDITOR_ASSIGN,
-                    $mailable,
-                    $submission
-                );
+                // The submission's e-mail log records only what really left.
+                if (!self::send($mailable)) {
+                    error_log('[assignEditorGeneral] The "editor assigned" e-mail to user ' . $editor->getId() . ' about submission ' . $submission->getId() . ' was not accepted by the mail transport.');
+                    continue;
+                }
+                try {
+                    Repo::emailLogEntry()->logMailable(SubmissionEmailLogEventType::EDITOR_ASSIGN, $mailable, $submission);
+                } catch (Throwable $e) {
+                    error_log('[assignEditorGeneral] E-mail sent but not added to the log of submission ' . $submission->getId() . ': ' . $e->getMessage());
+                }
             }
         }
 
-        // 7) Limpa a notificacao de "designe um editor" no painel de decisao.
+        // 7) Clear the "assign an editor" notification of the decision panel.
         if ($assignedAny) {
             $notificationManager->updateNotification(
                 Application::get()->getRequest(),
@@ -209,4 +221,28 @@ class AssignEditorGeneralPlugin extends GenericPlugin
             );
         }
     }
+
+    /**
+     * Send a message and tell whether the transport accepted it.
+     *
+     * PKP's mailer catches transport exceptions and only writes them to the error
+     * log, so Mail::send() returns normally when SMTP refuses the message.
+     * Laravel fires MessageSent only for a message handed to the transport.
+     */
+    public static function send(Mailable $mailable): bool
+    {
+        if (!self::$countingSent) {
+            Event::listen(MessageSent::class, fn () => self::$sentMessages++);
+            self::$countingSent = true;
+        }
+
+        $before = self::$sentMessages;
+        Mail::send($mailable);
+
+        return self::$sentMessages > $before;
+    }
+}
+
+if (!PKP_STRICT_MODE) {
+    class_alias('\APP\plugins\generic\assignEditorGeneral\AssignEditorGeneralPlugin', '\AssignEditorGeneralPlugin');
 }

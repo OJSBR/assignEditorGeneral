@@ -1,10 +1,10 @@
 # Assign General Editors — OMP plugin
 
 [![OMP](https://img.shields.io/badge/OMP-3.5-brightgreen)](https://pkp.sfu.ca/omp/)
-[![Version](https://img.shields.io/badge/version-1.0.0.3-blue)](version.xml)
+[![Version](https://img.shields.io/badge/version-1.0.1.0-blue)](version.xml)
 [![License](https://img.shields.io/badge/license-GPL--3.0-lightgrey)](LICENSE)
 
-**⬇️ Install package:** [OMP 3.5](https://github.com/OJSBR/assignEditorGeneral/releases/download/1.0.0.3/assignEditorGeneral-1.0.0.3.tar.gz) — or browse all [Releases](../../releases).
+**⬇️ Install package:** [OMP 3.5](https://github.com/OJSBR/assignEditorGeneral/releases/download/1.0.1.0/assignEditorGeneral-1.0.1.0.tar.gz) — or browse all [Releases](../../releases).
 
 A generic plugin for **Open Monograph Press (OMP)** that, whenever a new submission is
 completed, **automatically assigns every active user in the "Editor geral" (Press editor)
@@ -15,14 +15,14 @@ OMP only auto-assigns editors that are configured as sub-editors of the submissi
 **Series/Category**. This plugin adds the missing piece: a press-wide rule so that *all*
 general editors are put on *every* new submission, with no per-series configuration.
 
-> **Developed and maintained by [OJSBR](https://ojsbr.com.br).** See the
+> **Developed and maintained by [OJSBR](https://ojsbr.com).** See the
 > [Credits & authorship](#credits--authorship) section below.
 
 ## Compatibility & branches
 
 | OMP version | Branch | Plugin release |
 |-------------|--------|----------------|
-| OMP 3.5.x   | [`stable-3_5_0`](../../tree/stable-3_5_0) *(default)* | 1.0.0.3 |
+| OMP 3.5.x   | [`stable-3_5_0`](../../tree/stable-3_5_0) *(default)* | 1.0.1.0 |
 
 The plugin does not patch any core file: it hooks the native `SubmissionSubmitted` event at
 runtime (registered inside `register()`, with the `getEnabled()` check deferred to the event
@@ -32,7 +32,7 @@ handler per PKP issue #11793), mirroring the native `AssignEditors` listener and
 ## Installation
 
 1. Install via **Settings → Website → Plugins → Upload A New Plugin**, or extract the folder
-   into `plugins/generic/` so you get `plugins/generic/assignEditorGeneral/`.
+   into `plugins/generic/` so you get `plugins/generic/assignEditorGeneral/`. Do not rename the folder.
 2. Enable **Assign General Editors automatically** under the *Generic* plugins list.
 
 ## How it works
@@ -53,9 +53,28 @@ On every completed submission the plugin:
 The native OMP behavior is preserved: sub-editors mapped to the submission's Series/Category
 are still assigned by core — this plugin only **adds** the general editors on top.
 
+The submission's e-mail log records the "Editor assigned" message only when the mail transport
+accepted it: OMP's mailer swallows SMTP failures, so the plugin counts Laravel's `MessageSent`
+event and writes a failure (user and submission ids, no address) to the PHP error log instead.
+
+## Tests
+
+- **PHP suite** (`tests/`, 18 tests): the class against the installed PKP, which groups count as
+  general editors, the e-mail log written only after the transport accepts a message, no e-mail
+  address in the server log, and the 38 translations. Run either way from the OMP root:
+
+  ```bash
+  php plugins/generic/assignEditorGeneral/tests/run.php
+  lib/pkp/lib/vendor/bin/phpunit --configuration lib/pkp/tests/phpunit.xml --no-coverage "$PWD/plugins/generic/assignEditorGeneral/tests"
+  ```
+
+- Verified on OMP 3.5.0.5 with a temporary general editor and an in-memory mail transport: a
+  completed submission gets one assignment (full editor), one notification and one "Editor
+  assigned" message, logged once; a group with no member assigns nobody.
+
 ## Credits & authorship
 
-- **Developed and maintained by** [OJSBR](https://ojsbr.com.br) — original plugin.
+- **Developed and maintained by** [OJSBR](https://ojsbr.com) — original plugin.
 - Distributed under the **GNU GPL v3**.
 
 ## Contributing
@@ -81,14 +100,14 @@ da submissão. Este plugin adiciona a peça que falta: uma regra para a editora 
 modo que *todos* os editores gerais entrem em *toda* nova submissão, sem configuração por
 série.
 
-> **Desenvolvido e mantido pela [OJSBR](https://ojsbr.com.br).** Veja a seção
+> **Desenvolvido e mantido pela [OJSBR](https://ojsbr.com).** Veja a seção
 > [Créditos e autoria](#créditos-e-autoria) abaixo.
 
 ### Compatibilidade e branches
 
 | Versão do OMP | Branch | Release do plugin |
 |---------------|--------|-------------------|
-| OMP 3.5.x     | `stable-3_5_0` *(padrão)* | 1.0.0.0 |
+| OMP 3.5.x     | [`stable-3_5_0`](../../tree/stable-3_5_0) *(padrão)* | 1.0.1.0 |
 
 O plugin não altera nenhum arquivo do core: engancha o evento nativo `SubmissionSubmitted` em
 tempo de execução (registrado no `register()`, com o `getEnabled()` verificado dentro do
@@ -116,9 +135,19 @@ O comportamento nativo do OMP é preservado: subeditores vinculados à Série/Ca
 submissão continuam sendo atribuídos pelo core — este plugin apenas **soma** os editores
 gerais.
 
+O histórico de e-mails da submissão só registra o "Editor designado" quando o transporte de
+e-mail aceitou a mensagem (o mailer do OMP engole falha de SMTP); a falha vai para o log do PHP,
+com ids e sem endereço.
+
+### Testes
+
+Suíte PHP em `tests/` (18 testes, pelo `tests/run.php` ou pelo PHPUnit do PKP). Verificado no OMP
+3.5.0.5 com um editor geral temporário e transporte de e-mail em memória: submissão finalizada
+recebe uma atribuição, uma notificação e um e-mail "Editor designado", registrado uma vez.
+
 ### Créditos e autoria
 
-- **Desenvolvido e mantido pela** [OJSBR](https://ojsbr.com.br) — plugin autoral.
+- **Desenvolvido e mantido pela** [OJSBR](https://ojsbr.com) — plugin autoral.
 - Distribuído sob a **GNU GPL v3**.
 
 ### Licença
