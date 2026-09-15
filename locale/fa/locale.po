@@ -15,3 +15,11 @@ msgstr "تخصیص خودکار سردبیران کل"
 #, fuzzy
 msgid "plugins.generic.assignEditorGeneral.description"
 msgstr "با تکمیل یک ارسال جدید، همهٔ کاربران فعال گروه \"Editor geral\" (ویراستار انتشارات) را به‌طور خودکار به مرحلهٔ ارسال تخصیص می‌دهد، همراه با اعلان و ایمیل استاندارد OMP."
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.settings.groups"
+msgstr "Groups assigned to new submissions"
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.settings.groups.description"
+msgstr "Every active user of the checked groups is assigned as an editor when a submission is completed. Only groups with the press manager role are listed. Until a choice is saved, the default Press editor group is used."

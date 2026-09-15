@@ -22,9 +22,14 @@ use APP\core\Application;
 use APP\facades\Repo;
 use APP\notification\NotificationManager;
 use Illuminate\Mail\Events\MessageSent;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
+use PKP\context\Context;
+use PKP\core\JSONMessage;
 use PKP\db\DAORegistry;
+use PKP\linkAction\LinkAction;
+use PKP\linkAction\request\AjaxModal;
 use PKP\log\SubmissionEmailLogEventType;
 use PKP\mail\Mailable;
 use PKP\mail\mailables\EditorAssigned;
@@ -46,8 +51,14 @@ class AssignEditorGeneralPlugin extends GenericPlugin
      */
     public const EDITOR_GROUP_LOCALE_KEY = 'default.groups.name.editor';
 
-    /** Fallback for a group created by hand: its Brazilian Portuguese name. */
+    /**
+     * Name of a group created by hand, recognised only while the press has not chosen
+     * its groups in the settings (installations of 1.0.x relied on it).
+     */
     public const EDITOR_GROUP_NAME_FALLBACK = 'Editor geral';
+
+    /** Setting: ids of the manager-role groups whose users are assigned. */
+    public const SETTING_USER_GROUP_IDS = 'userGroupIds';
 
     /** The listener is registered once per request. */
     private static bool $listenerRegistered = false;
@@ -58,15 +69,17 @@ class AssignEditorGeneralPlugin extends GenericPlugin
     private static bool $countingSent = false;
 
     /**
-     * @copydoc Plugin::register()
+     * Register the plugin and its event listener.
      *
      * The listener is always registered and the context check happens when the
-     * event fires: when generic plugins load, the context may not be resolved
-     * yet, and checking then would miss the assignment.
+     * event fires (pkp/pkp-lib#11793): when generic plugins load, the context may
+     * not be resolved yet, and checking then would miss the assignment.
      *
-     * @param null|mixed $mainContextId
+     * @param string $category
+     * @param string $path
+     * @param null|int $mainContextId
      */
-    public function register($category, $path, $mainContextId = null)
+    public function register($category, $path, $mainContextId = null): bool
     {
         $success = parent::register($category, $path, $mainContextId);
         if (Application::isUnderMaintenance() || !$success) {
@@ -84,23 +97,108 @@ class AssignEditorGeneralPlugin extends GenericPlugin
     }
 
     /**
-     * @copydoc Plugin::getDisplayName()
+     * Name shown in the plugins list.
      */
-    public function getDisplayName()
+    public function getDisplayName(): string
     {
         return __('plugins.generic.assignEditorGeneral.displayName');
     }
 
     /**
-     * @copydoc Plugin::getDescription()
+     * Description shown in the plugins list.
      */
-    public function getDescription()
+    public function getDescription(): string
     {
         return __('plugins.generic.assignEditorGeneral.description');
     }
 
     /**
-     * Whether a manager-role group is the general editors group.
+     * Add the settings action to the plugin entry in the plugins list.
+     */
+    public function getActions($request, $actionArgs): array
+    {
+        $actions = parent::getActions($request, $actionArgs);
+        if (!$request->getContext() || !$this->getEnabled()) {
+            return $actions;
+        }
+
+        $url = $request->getRouter()->url($request, null, null, 'manage', null, [
+            'verb' => 'settings',
+            'plugin' => $this->getName(),
+            'category' => 'generic',
+        ]);
+        array_unshift($actions, new LinkAction('settings', new AjaxModal($url, $this->getDisplayName()), __('manager.plugins.settings')));
+
+        return $actions;
+    }
+
+    /**
+     * Show and save the settings form.
+     */
+    public function manage($args, $request): JSONMessage
+    {
+        // The settings belong to a press; there is nothing to configure site-wide.
+        $context = $request->getContext();
+        if ($request->getUserVar('verb') !== 'settings' || !$context) {
+            return parent::manage($args, $request);
+        }
+
+        $form = new AssignEditorGeneralSettingsForm($this, $context);
+        if (!$request->getUserVar('save')) {
+            $form->initData();
+            return new JSONMessage(true, $form->fetch($request));
+        }
+
+        $form->readInputData();
+        if (!$form->validate()) {
+            return new JSONMessage(true, $form->fetch($request));
+        }
+
+        $form->execute();
+        (new NotificationManager())->createTrivialNotification($request->getUser()->getId());
+
+        return new JSONMessage(true);
+    }
+
+    /**
+     * The manager-role groups of a press, each with its localized name.
+     *
+     * get(), not cursor(): only get() hydrates the group settings (nameLocaleKey,
+     * name); the native getByRoleIds() uses cursor() and returns them null.
+     */
+    public function managerGroups(int $contextId): Collection
+    {
+        return UserGroup::withRoleIds([Role::ROLE_ID_MANAGER])
+            ->withContextIds([$contextId])
+            ->get();
+    }
+
+    /**
+     * The groups whose active users are assigned: those the press chose in the
+     * settings or, while it has chosen none, the default "Press editor" group.
+     */
+    public function generalEditorGroups(int $contextId): Collection
+    {
+        $chosen = self::chosenGroupIds($this->getSetting($contextId, self::SETTING_USER_GROUP_IDS));
+        $groups = $this->managerGroups($contextId);
+
+        return $chosen
+            ? $groups->filter(fn (UserGroup $userGroup) => in_array((int) $userGroup->id, $chosen, true))
+            : $groups->filter(fn (UserGroup $userGroup) => self::isGeneralEditorGroup($userGroup->nameLocaleKey ?? null, $userGroup->getLocalizedData('name', 'pt_BR')));
+    }
+
+    /**
+     * The group ids stored in the setting, as positive integers.
+     *
+     * @return int[]
+     */
+    public static function chosenGroupIds($stored): array
+    {
+        return array_values(array_unique(array_filter(array_map('intval', is_array($stored) ? $stored : []), fn (int $id) => $id > 0)));
+    }
+
+    /**
+     * Whether a manager-role group is the default general editors group.
      */
     public static function isGeneralEditorGroup(?string $nameLocaleKey, ?string $brazilianName): bool
     {
@@ -120,13 +218,8 @@ class AssignEditorGeneralPlugin extends GenericPlugin
             return;
         }
 
-        // 1) The general editors groups (manager role) of the press. get(), not
-        //    cursor(): only get() hydrates the group settings (nameLocaleKey,
-        //    name); the native getByRoleIds() uses cursor() and returns them null.
-        $editorGroups = UserGroup::withRoleIds([Role::ROLE_ID_MANAGER])
-            ->withContextIds([$context->getId()])
-            ->get()
-            ->filter(fn (UserGroup $userGroup) => self::isGeneralEditorGroup($userGroup->nameLocaleKey ?? null, $userGroup->getLocalizedData('name', 'pt_BR')));
+        // 1) The general editors groups (manager role) of the press.
+        $editorGroups = $this->generalEditorGroups((int) $context->getId());
 
         if ($editorGroups->isEmpty()) {
             error_log('[assignEditorGeneral] No general editors group in context ' . $context->getId() . '.');

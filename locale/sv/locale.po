@@ -15,3 +15,11 @@ msgstr "Tilldela allmänna redaktörer automatiskt"
 #, fuzzy
 msgid "plugins.generic.assignEditorGeneral.description"
 msgstr "När ett nytt bidrag har slutförts tilldelas alla aktiva användare i gruppen ”Editor geral” (förlagsredaktör) automatiskt till bidragets steg, med OMP:s standardavisering och e-post."
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.settings.groups"
+msgstr "Groups assigned to new submissions"
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.settings.groups.description"
+msgstr "Every active user of the checked groups is assigned as an editor when a submission is completed. Only groups with the press manager role are listed. Until a choice is saved, the default Press editor group is used."

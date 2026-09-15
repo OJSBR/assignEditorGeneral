@@ -13,3 +13,9 @@ msgstr "Assign General Editors automatically"
 
 msgid "plugins.generic.assignEditorGeneral.description"
 msgstr "When a new submission is completed, automatically assigns every active user in the \"Editor geral\" (Press editor) group to the submission stage, with the standard OMP notification and e-mail."
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups"
+msgstr "Groups assigned to new submissions"
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups.description"
+msgstr "Every active user of the checked groups is assigned as an editor when a submission is completed. Only groups with the press manager role are listed. Until a choice is saved, the default Press editor group is used."

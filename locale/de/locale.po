@@ -13,3 +13,9 @@ msgstr "Hauptredakteure automatisch zuweisen"
 
 msgid "plugins.generic.assignEditorGeneral.description"
 msgstr "Wenn eine neue Einreichung abgeschlossen wird, werden automatisch alle aktiven Benutzer der Gruppe „Editor geral“ (Verlagsredakteur) der Einreichungsphase zugewiesen, mit der üblichen OMP-Benachrichtigung und -E-Mail."
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups"
+msgstr "Gruppen, die neuen Einreichungen zugewiesen werden"
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups.description"
+msgstr "Alle aktiven Benutzer/innen der markierten Gruppen werden als Herausgeber/innen zugewiesen, wenn eine Einreichung abgeschlossen wird. Es werden nur Gruppen mit der Verlagsleitungsrolle angezeigt. Solange keine Auswahl gespeichert ist, wird die Standardgruppe der Verlagsherausgeber/innen verwendet."

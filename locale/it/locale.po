@@ -13,3 +13,9 @@ msgstr "Assegna automaticamente i redattori generali"
 
 msgid "plugins.generic.assignEditorGeneral.description"
 msgstr "Quando una nuova proposta viene completata, assegna automaticamente tutti gli utenti attivi del gruppo «Editor geral» (redattore dell'editore) alla fase della proposta, con la notifica e l'e-mail standard di OMP."
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups"
+msgstr "Gruppi assegnati alle nuove proposte"
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups.description"
+msgstr "Tutti gli utenti attivi dei gruppi selezionati vengono assegnati come editor quando una proposta è completata. Sono elencati solo i gruppi con il ruolo di manager della casa editrice. Finché non viene salvata una scelta, si usa il gruppo predefinito di editor della casa editrice."

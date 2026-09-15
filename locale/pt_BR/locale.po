@@ -12,4 +12,10 @@ msgid "plugins.generic.assignEditorGeneral.displayName"
 msgstr "Atribuir Editores Gerais automaticamente"
 
 msgid "plugins.generic.assignEditorGeneral.description"
-msgstr "Ao finalizar uma nova submissao, atribui automaticamente todos os usuarios ativos do grupo \"Editor geral\" a etapa de submissao, com a notificacao e o e-mail padrao do OMP."
+msgstr "Ao finalizar uma nova submissão, atribui automaticamente todos os usuários ativos do grupo \"Editor geral\" à etapa de submissão, com a notificação e o e-mail padrão do OMP."
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups"
+msgstr "Grupos atribuídos às novas submissões"
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups.description"
+msgstr "Todo usuário ativo dos grupos marcados é designado como editor quando uma submissão é concluída. Só aparecem grupos com o papel de gestor da editora. Enquanto nenhuma escolha for salva, é usado o grupo padrão de editor da editora."

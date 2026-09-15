@@ -15,16 +15,18 @@
 
 namespace APP\plugins\generic\assignEditorGeneral\tests;
 
+use PKP\tests\PKPTestCase;
 use ReflectionClass;
 use ReflectionNamedType;
 
-class PluginTest extends TestCase
+class PluginTest extends PKPTestCase
 {
     /** @return string[] */
     protected function classes(): array
     {
         return [
             \APP\plugins\generic\assignEditorGeneral\AssignEditorGeneralPlugin::class,
+            \APP\plugins\generic\assignEditorGeneral\AssignEditorGeneralSettingsForm::class,
         ];
     }
 
@@ -58,6 +60,21 @@ class PluginTest extends TestCase
                 );
             }
         }
+    }
+
+    public function testTheRegistryFindsThePlugin(): void
+    {
+        // PKP looks for APP\plugins\<category>\<dir>\<Dir>Plugin first and only then for index.php:
+        // a main class named otherwise without index.php is never loaded, and nothing is logged.
+        $root = dirname(__DIR__);
+        $product = basename($root);
+        $category = basename(dirname($root));
+        if (is_file($root . '/index.php')) {
+            $this->assertStringContainsString('return new ', (string) file_get_contents($root . '/index.php'));
+            return;
+        }
+        $class = implode(chr(92), ['APP', 'plugins', $category, $product, ucfirst($product) . 'Plugin']);
+        $this->assertTrue(class_exists($class), "Without index.php the main class must be {$class}.");
     }
 
     public function testNoInheritedPropertyIsRedeclaredWithAType(): void

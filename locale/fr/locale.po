@@ -13,3 +13,9 @@ msgstr "Assigner automatiquement les rédacteurs généraux"
 
 msgid "plugins.generic.assignEditorGeneral.description"
 msgstr "Lorsqu'une nouvelle soumission est finalisée, assigne automatiquement tous les utilisateurs actifs du groupe « Editor geral » (rédacteur de la maison d'édition) à l'étape de la soumission, avec la notification et le courriel standard d'OMP."
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups"
+msgstr "Groupes assignés aux nouvelles soumissions"
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups.description"
+msgstr "Tous les utilisateurs actifs des groupes cochés sont assignés comme rédacteurs lorsqu'une soumission est finalisée. Seuls les groupes ayant le rôle de gestionnaire de la maison d'édition sont listés. Tant qu'aucun choix n'est enregistré, le groupe par défaut de rédacteur de la maison d'édition est utilisé."

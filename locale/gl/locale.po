@@ -13,3 +13,9 @@ msgstr "Asignar os editores xerais automaticamente"
 
 msgid "plugins.generic.assignEditorGeneral.description"
 msgstr "Cando se completa un novo envío, asigna automaticamente todas as persoas usuarias activas do grupo «Editor geral» (editor da editorial) á etapa do envío, coa notificación e o correo estándar de OMP."
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups"
+msgstr "Grupos asignados aos novos envíos"
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups.description"
+msgstr "Todos os usuarios activos dos grupos marcados asígnanse como editores cando se completa un envío. Só se amosan os grupos co rol de xestor da editorial. Mentres non se garde ningunha elección, úsase o grupo predeterminado de editor da editorial."

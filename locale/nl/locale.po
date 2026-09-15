@@ -13,3 +13,9 @@ msgstr "Algemene redacteuren automatisch toewijzen"
 
 msgid "plugins.generic.assignEditorGeneral.description"
 msgstr "Wanneer een nieuwe inzending is voltooid, worden alle actieve gebruikers in de groep \"Editor geral\" (uitgeverijredacteur) automatisch aan de fase van de inzending toegewezen, met de standaardmelding en e-mail van OMP."
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups"
+msgstr "Groepen die aan nieuwe inzendingen worden toegewezen"
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups.description"
+msgstr "Alle actieve gebruikers van de aangevinkte groepen worden als redacteur toegewezen wanneer een inzending is voltooid. Alleen groepen met de rol van uitgeverijmanager worden getoond. Zolang er geen keuze is opgeslagen, wordt de standaardgroep van uitgeverijredacteuren gebruikt."

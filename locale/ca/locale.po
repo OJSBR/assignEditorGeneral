@@ -13,3 +13,9 @@ msgstr "Assigna els editors generals automàticament"
 
 msgid "plugins.generic.assignEditorGeneral.description"
 msgstr "Quan es completa una nova tramesa, assigna automàticament tots els usuaris actius del grup «Editor geral» (editor de l'editorial) a l'etapa de la tramesa, amb la notificació i el correu estàndard de l'OMP."
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups"
+msgstr "Grups assignats als nous enviaments"
+
+msgid "plugins.generic.assignEditorGeneral.settings.groups.description"
+msgstr "Tots els usuaris actius dels grups marcats s'assignen com a editors quan es completa un enviament. Només es mostren els grups amb el rol de gestor de l'editorial. Mentre no es desi cap elecció, s'utilitza el grup predeterminat d'editor de l'editorial."

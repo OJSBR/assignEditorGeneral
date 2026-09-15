@@ -15,3 +15,11 @@ msgstr "自动指派总编辑"
 #, fuzzy
 msgid "plugins.generic.assignEditorGeneral.description"
 msgstr "新投稿完成时，自动将“Editor geral”（出版社编辑）用户组中的所有启用用户指派到该投稿阶段，并发送 OMP 的标准通知和邮件。"
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.settings.groups"
+msgstr "Groups assigned to new submissions"
+
+#, fuzzy
+msgid "plugins.generic.assignEditorGeneral.settings.groups.description"
+msgstr "Every active user of the checked groups is assigned as an editor when a submission is completed. Only groups with the press manager role are listed. Until a choice is saved, the default Press editor group is used."
