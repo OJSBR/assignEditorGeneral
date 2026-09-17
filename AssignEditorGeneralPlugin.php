@@ -23,6 +23,7 @@ use APP\facades\Repo;
 use APP\notification\NotificationManager;
 use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use PKP\context\Context;
@@ -241,7 +242,30 @@ class AssignEditorGeneralPlugin extends GenericPlugin
                 ->filterByContextIds([$context->getId()])
                 ->filterByUserGroupIds([$userGroupId])
                 ->filterByStatus(Collector::STATUS_ACTIVE)
-                ->getMany();
+                // Read once: what the collector returns is walked lazily, and
+                // counting it first would leave the loop below with nothing.
+                ->getMany()
+                ->all();
+
+            // A group with no workflow stage is invisible in the participants of
+            // the submission: the assignment is made and nobody sees it. Saying so
+            // is the difference between a press that fixes its group and one that
+            // thinks the plugin does nothing.
+            if (!DB::table('user_group_stage')->where('user_group_id', $userGroupId)->exists()) {
+                error_log('[assignEditorGeneral] The general editors group ' . $userGroupId
+                    . ' of context ' . $context->getId() . ' is in no workflow stage: whoever is assigned'
+                    . ' through it does not show among the participants of the submission.');
+            }
+
+            if (!count($editors)) {
+                // A group with nobody active in it assigns nobody: without this
+                // line the press would be left wondering why nothing happened.
+                // A membership with no starting date does not count as active,
+                // which is the usual reason for an empty group here.
+                error_log('[assignEditorGeneral] The general editors group ' . $userGroupId
+                    . ' of context ' . $context->getId() . ' has no active member: nobody was assigned.');
+                continue;
+            }
 
             foreach ($editors as $editor) {
                 // 3) Already assigned with this group: no second assignment or notification.

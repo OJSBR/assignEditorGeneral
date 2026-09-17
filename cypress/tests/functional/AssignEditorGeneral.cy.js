@@ -224,13 +224,33 @@ describe('Assign General Editors plugin', function() {
 		openSettings();
 
 		checked().then((original) => {
-			cy.get(groups).last().invoke('val').then((groupId) => {
+			// A group with nobody active in it would assign nobody, and the test
+			// would be reading its own set-up instead of the plugin: the group is
+			// chosen among those that really have an active member.
+			cy.get(groups).then(($inputs) => $inputs.map((index, input) => input.value).get()).then((candidates) => {
+				cy.visit(pageUrl('submissions') + '?reload=' + Date.now());
+				const members = {};
+
+				candidates.forEach((candidate) => {
+					api(pageUrl('api/v1/users?userGroupIds[]=' + candidate + '&status=active&count=50')).then((users) => {
+						members[candidate] = (users.items || []).map((item) => item.id);
+					});
+				});
+
+				cy.then(() => {
+					const groupId = candidates.find((candidate) => (members[candidate] || []).length);
+					expect(groupId, 'no manager group of this press has an active member: '
+						+ JSON.stringify(members)).to.exist;
+
+					return cy.wrap({groupId: groupId, expected: members[groupId]}, {log: false});
+				});
+			}).then(({groupId, expected}) => {
 				// The press assigns this group, and these are its active members.
+				openPluginsTab();
+				openSettings();
 				choose([groupId]);
 				cy.visit(pageUrl('submissions') + '?reload=' + Date.now());
-				api(pageUrl('api/v1/users?userGroupIds[]=' + groupId + '&status=active&count=50')).then((users) => {
-					const expected = (users.items || []).map((item) => item.id);
-					expect(expected, 'the chosen group has at least one editor').to.not.be.empty;
+				cy.then(() => {
 
 					cy.window({log: false}).its('pkp.context.primaryLocale').then((locale) => {
 						send(pageUrl('api/v1/submissions'), 'POST', {locale: locale}).then((created) => {
@@ -248,7 +268,8 @@ describe('Assign General Editors plugin', function() {
 									expect(submitted.status, 'the submission was completed: ' + JSON.stringify(submitted.body)).to.eq(200);
 
 									return api(pageUrl('api/v1/submissions/' + submission.id + '/participants'));
-								});
+								})
+								;
 						});
 					}).then((participants) => {
 						const list = Array.isArray(participants) ? participants : (participants.items || []);
