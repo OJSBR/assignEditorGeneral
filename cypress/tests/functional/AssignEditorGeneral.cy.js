@@ -143,4 +143,136 @@ describe('Assign General Editors plugin', function() {
 			});
 		});
 	});
+
+	// A call of the REST API made from the page, carrying its session and token.
+	const send = (path, method, body) => cy.window({log: false}).then((win) => cy.wrap(
+		win.fetch(path, {
+			method: method,
+			credentials: 'same-origin',
+			headers: {'Content-Type': 'application/json', 'X-Csrf-Token': win.pkp.currentUser.csrfToken},
+			body: body === undefined ? undefined : JSON.stringify(body),
+		}).then((response) => response.json().then((answer) => ({status: response.status, body: answer}))),
+		{log: false, timeout: 60000}
+	));
+
+
+	// A press does not accept a submission without a file of the kind it asks for
+	// (the manuscript). Which kinds exist is read from the page of the wizard
+	// itself, so no id of any data set is written into the test, and a real file
+	// is uploaded under each main kind — the extra ones do no harm.
+	const uploadFile = (submission, locale, genreId) => cy.window({log: false}).then((win) => cy.wrap(
+		(async () => {
+			const form = new win.FormData();
+			form.append('file', new win.File(['%PDF-1.4 OJSBR test file'], 'ojsbr-test.pdf', {type: 'application/pdf'}));
+			form.append('fileStage', '2');
+			form.append('genreId', String(genreId));
+			form.append('name[' + locale + ']', 'ojsbr-test.pdf');
+			const response = await win.fetch(pageUrl('api/v1/submissions/' + submission.id + '/files'), {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: {'X-Csrf-Token': win.pkp.currentUser.csrfToken},
+				body: form,
+			});
+
+			return {status: response.status, body: await response.json()};
+		})(),
+		{log: false, timeout: 60000}
+	));
+
+	const attachRequiredFile = (submission, locale) => request(pageUrl('submission') + '?id=' + submission.id)
+		.then((page) => {
+			// The state of the page carries the kinds of file the press declares.
+			const at = String(page.body).indexOf('"genres":');
+			expect(at, 'the page of the wizard names the kinds of file').to.be.greaterThan(-1);
+			const text = String(page.body).slice(at + '"genres":'.length);
+			let depth = 0;
+			let end = -1;
+			for (let i = 0; i < text.length; i++) {
+				if (text[i] === '[') {
+					depth++;
+				} else if (text[i] === ']') {
+					depth--;
+					if (depth === 0) {
+						end = i + 1;
+						break;
+					}
+				}
+			}
+			const genres = JSON.parse(text.slice(0, end).replace(/&quot;/g, '"'));
+			const primary = genres.filter((genre) => genre.isPrimary).slice(0, 3);
+			expect(primary, 'the press declares a main kind of file').to.not.be.empty;
+
+			return cy.wrap(primary, {log: false});
+		})
+		.then((primary) => {
+			primary.forEach((genre) => {
+				uploadFile(submission, locale, genre.id).then((answer) => {
+					expect(answer.status, 'the file was uploaded: ' + JSON.stringify(answer.body)).to.be.within(200, 201);
+				});
+			});
+		});
+
+	// Submissions made by the test, removed in after() even when an assertion fails.
+	const madeHere = [];
+
+	// The point of the plugin: whoever belongs to a general-editor group of the
+	// press becomes a participant of a submission as soon as it is completed.
+	// Nothing short of really completing one proves it.
+	it('Makes the general editors participants of a submission that was just completed', function() {
+		login(adminUser, adminPassword);
+		openPluginsTab();
+		openSettings();
+
+		checked().then((original) => {
+			cy.get(groups).last().invoke('val').then((groupId) => {
+				// The press assigns this group, and these are its active members.
+				choose([groupId]);
+				cy.visit(pageUrl('submissions') + '?reload=' + Date.now());
+				api(pageUrl('api/v1/users?userGroupIds[]=' + groupId + '&status=active&count=50')).then((users) => {
+					const expected = (users.items || []).map((item) => item.id);
+					expect(expected, 'the chosen group has at least one editor').to.not.be.empty;
+
+					cy.window({log: false}).its('pkp.context.primaryLocale').then((locale) => {
+						send(pageUrl('api/v1/submissions'), 'POST', {locale: locale}).then((created) => {
+							expect(created.status, 'the submission was created: ' + JSON.stringify(created.body)).to.be.within(200, 201);
+							madeHere.push(created.body.id);
+							const submission = created.body;
+
+							return send(
+								pageUrl('api/v1/submissions/' + submission.id + '/publications/' + submission.currentPublicationId),
+								'PUT',
+								{title: {[locale]: 'OJSBR assignEditorGeneral ' + Date.now()}}
+							).then(() => attachRequiredFile(submission, locale))
+								.then(() => send(pageUrl('api/v1/submissions/' + submission.id + '/submit'), 'PUT', {}))
+								.then((submitted) => {
+									expect(submitted.status, 'the submission was completed: ' + JSON.stringify(submitted.body)).to.eq(200);
+
+									return api(pageUrl('api/v1/submissions/' + submission.id + '/participants'));
+								});
+						});
+					}).then((participants) => {
+						const list = Array.isArray(participants) ? participants : (participants.items || []);
+						const ids = list.map((item) => item.id);
+						expected.forEach((editorId) => {
+							expect(ids, 'the editor ' + editorId + ' of the general group was not made a participant; '
+								+ 'the submission has these participants: ' + JSON.stringify(participants).slice(0, 400))
+								.to.include(editorId);
+						});
+					});
+				});
+
+				// The choice of the press goes back to what it was.
+				choose(original);
+			});
+		});
+	});
+
+	after(function() {
+		if (!madeHere.length) {
+			return;
+		}
+		login(adminUser, adminPassword);
+		madeHere.forEach((id) => send(pageUrl('api/v1/submissions/' + id), 'DELETE'));
+	});
+
 });
