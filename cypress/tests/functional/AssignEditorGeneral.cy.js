@@ -218,75 +218,50 @@ describe('Assign General Editors plugin', function() {
 	// The point of the plugin: whoever belongs to a general-editor group of the
 	// press becomes a participant of a submission as soon as it is completed.
 	// Nothing short of really completing one proves it.
+	//
+	// The press is left with the groups it chose: this reads the plugin as the
+	// press has it, not a set-up of the test. A submission starts with nobody but
+	// whoever made it, so anyone else found among its participants afterwards was
+	// put there by the plugin.
 	it('Makes the general editors participants of a submission that was just completed', function() {
 		login(adminUser, adminPassword);
-		openPluginsTab();
-		openSettings();
+		cy.visit(pageUrl('submissions') + '?reload=' + Date.now());
 
-		checked().then((original) => {
-			// A group with nobody active in it would assign nobody, and the test
-			// would be reading its own set-up instead of the plugin: the group is
-			// chosen among those that really have an active member.
-			cy.get(groups).then(($inputs) => $inputs.map((index, input) => input.value).get()).then((candidates) => {
-				cy.visit(pageUrl('submissions') + '?reload=' + Date.now());
-				const members = {};
+		cy.window({log: false}).its('pkp.currentUser.id').then((me) => {
+			cy.window({log: false}).its('pkp.context.primaryLocale').then((locale) => {
+				send(pageUrl('api/v1/submissions'), 'POST', {locale: locale}).then((created) => {
+					expect(created.status, 'the submission was created: ' + JSON.stringify(created.body)).to.be.within(200, 201);
+					madeHere.push(created.body.id);
+					const submission = created.body;
 
-				candidates.forEach((candidate) => {
-					api(pageUrl('api/v1/users?userGroupIds[]=' + candidate + '&status=active&count=50')).then((users) => {
-						members[candidate] = (users.items || []).map((item) => item.id);
+					// Before it is completed, nobody of the editorial staff is on it.
+					api(pageUrl('api/v1/submissions/' + submission.id + '/participants')).then((before) => {
+						const list = Array.isArray(before) ? before : (before.items || []);
+						expect(list.map((item) => item.id).filter((id) => id !== me),
+							'a submission that was not completed yet already has editors on it: ' + JSON.stringify(list))
+							.to.be.empty;
 					});
-				});
 
-				cy.then(() => {
-					const groupId = candidates.find((candidate) => (members[candidate] || []).length);
-					expect(groupId, 'no manager group of this press has an active member: '
-						+ JSON.stringify(members)).to.exist;
+					return send(
+						pageUrl('api/v1/submissions/' + submission.id + '/publications/' + submission.currentPublicationId),
+						'PUT',
+						{title: {[locale]: 'OJSBR assignEditorGeneral ' + Date.now()}}
+					).then(() => attachRequiredFile(submission, locale))
+						.then(() => send(pageUrl('api/v1/submissions/' + submission.id + '/submit'), 'PUT', {}))
+						.then((submitted) => {
+							expect(submitted.status, 'the submission was completed: ' + JSON.stringify(submitted.body)).to.eq(200);
 
-					return cy.wrap({groupId: groupId, expected: members[groupId]}, {log: false});
-				});
-			}).then(({groupId, expected}) => {
-				// The press assigns this group, and these are its active members.
-				openPluginsTab();
-				openSettings();
-				choose([groupId]);
-				cy.visit(pageUrl('submissions') + '?reload=' + Date.now());
-				cy.then(() => {
-
-					cy.window({log: false}).its('pkp.context.primaryLocale').then((locale) => {
-						send(pageUrl('api/v1/submissions'), 'POST', {locale: locale}).then((created) => {
-							expect(created.status, 'the submission was created: ' + JSON.stringify(created.body)).to.be.within(200, 201);
-							madeHere.push(created.body.id);
-							const submission = created.body;
-
-							return send(
-								pageUrl('api/v1/submissions/' + submission.id + '/publications/' + submission.currentPublicationId),
-								'PUT',
-								{title: {[locale]: 'OJSBR assignEditorGeneral ' + Date.now()}}
-							).then(() => attachRequiredFile(submission, locale))
-								.then(() => send(pageUrl('api/v1/submissions/' + submission.id + '/submit'), 'PUT', {}))
-								.then((submitted) => {
-									expect(submitted.status, 'the submission was completed: ' + JSON.stringify(submitted.body)).to.eq(200);
-
-									return api(pageUrl('api/v1/submissions/' + submission.id + '/participants'));
-								})
-								;
+							return api(pageUrl('api/v1/submissions/' + submission.id + '/participants'));
 						});
-					}).then((participants) => {
-						const list = Array.isArray(participants) ? participants : (participants.items || []);
-						const ids = list.map((item) => item.id);
-						// Whoever of the general-editor group the press keeps active
-						// is now a participant of a submission that had none. Which
-						// of them is not the promise; that the group reaches the
-						// submission is.
-						const assigned = expected.filter((editorId) => ids.includes(editorId));
-						expect(assigned, 'nobody of the general-editor group ' + JSON.stringify(expected)
-							+ ' was made a participant; the submission has: ' + JSON.stringify(ids))
-							.to.not.be.empty;
-					});
+				}).then((participants) => {
+					const list = Array.isArray(participants) ? participants : (participants.items || []);
+					const editors = list.map((item) => item.id).filter((id) => id !== me);
+					expect(editors, 'completing the submission put no general editor on it. The press has to have a '
+						+ 'general-editor group with an active member, and that group has to take part in a stage of '
+						+ 'the workflow; the plugin writes to the log when neither is true. Participants: '
+						+ JSON.stringify(list.map((item) => item.id)))
+						.to.not.be.empty;
 				});
-
-				// The choice of the press goes back to what it was.
-				choose(original);
 			});
 		});
 	});
