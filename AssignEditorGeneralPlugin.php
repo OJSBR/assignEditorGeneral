@@ -169,9 +169,20 @@ class AssignEditorGeneralPlugin extends GenericPlugin
      */
     public function managerGroups(int $contextId): Collection
     {
+        // Only groups that take part in a stage of the workflow. An assignment
+        // made through a group that is in none is written to the database and
+        // then shown nowhere — not in the participants of the submission, not in
+        // what the editor sees — because the core reads participants through the
+        // stages of their group. Offering such a group here would be offering
+        // something that cannot work; the manager group of a press, which has no
+        // stage of its own, is exactly that case.
         return UserGroup::withRoleIds([Role::ROLE_ID_MANAGER])
             ->withContextIds([$contextId])
-            ->get();
+            ->get()
+            ->filter(fn (UserGroup $userGroup) => DB::table('user_group_stage')
+                ->where('user_group_id', $userGroup->id)
+                ->exists())
+            ->values();
     }
 
     /**
